@@ -28,8 +28,9 @@
             ITER,
             DEFAULT_SIZE = 32;
         let bubbles = [];
-        let sea = "#005060";
-
+        let circles = [];
+        let seatop = "#008090";
+        let seabottom = "#003040";
 
         const getBubble = (opacity) => {
             const svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="${DEFAULT_SIZE}" height="${DEFAULT_SIZE}">
@@ -55,11 +56,37 @@
                     0.5 + Math.random() * 0.5 // personal speed
                 ]);
             }
+            for (let i = 0; i < 10; i++) {
+                circles.push([
+                    Math.floor(Math.random() * W), // x
+                    Math.random() * H / 8, // y
+                    Math.random() * 150, // r
+                    (1 - Math.random() * 2) * 1.1 // dx
+                ]);
+            }
         }
 
         const draw = () => {
-            ctx.fillStyle = sea;
+            const grad = ctx.createLinearGradient(0, 0, 0, H);
+            grad.addColorStop(0, seatop);
+            grad.addColorStop(1, seabottom);
+            ctx.fillStyle = grad;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            let R = 2000;
+            ctx.shadowColor = "#ffffff";
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 0;
+            ctx.shadowBlur = 4;
+            circles.forEach(e => {
+                ctx.strokeStyle = "#999999";
+                ctx.beginPath();
+                ctx.arc(e[0], -R + e[1], R, 0, Math.PI);
+                ctx.stroke();
+                e[0] = e[0] + e[3] * 5;
+                if (e[0] < 0 || e[0] > W)
+                    e[3] = - e[3];
+            });
 
             bubbles.forEach(e => {
                 ctx.drawImage(bubbleImages[e[3]], e[0], e[1], DEFAULT_SIZE * e[2], DEFAULT_SIZE * e[2]);
@@ -70,6 +97,7 @@
                     e[1] = H + DEFAULT_SIZE;
                     e[0] = Math.floor(Math.random() * W);
                 }
+
             });
             window.requestAnimationFrame(draw);
         }
