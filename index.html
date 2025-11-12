@@ -72,7 +72,7 @@
             grad.addColorStop(1, seabottom);
             ctx.fillStyle = grad;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-
+/*
             let R = 2000;
             ctx.shadowColor = "#ffffff";
             ctx.shadowOffsetX = 0;
@@ -87,7 +87,7 @@
                 if (e[0] < 0 || e[0] > W)
                     e[3] = - e[3];
             });
-
+*/
             bubbles.forEach(e => {
                 ctx.drawImage(bubbleImages[e[3]], e[0], e[1], DEFAULT_SIZE * e[2], DEFAULT_SIZE * e[2]);
                 e[1] = Math.floor(e[1] - e[2] * 3 * e[4]);
