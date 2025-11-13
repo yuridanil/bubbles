@@ -20,16 +20,22 @@
     </style>
 
     <script>
+        let start = new Date();
         let canvas;
         let ctx;
+        let n = 0;
         let
             W,
             H,
-            ITER,
+            BUBBLE_CNT = 100,
+            WAVE_CNT = 1,
             DEFAULT_SIZE = 32;
         let bubbles = [];
-        let circles = [];
-        let seatop = "#008090";
+        let waves = [];
+        let svg;
+        let img = new Image();
+
+        let seatop = "#00aacc";
         let seabottom = "#003040";
 
         const getBubble = (opacity) => {
@@ -46,8 +52,14 @@
             bubbleImages.push(img);
         }
 
+        let waveImages = [];
+        for (let i = 0; i < WAVE_CNT; i++) {
+            let img = new Image();
+            waveImages.push(img);
+        }
+
         const initBubbles = () => {
-            for (let i = 0; i < ITER; i++) {
+            for (let i = 0; i < BUBBLE_CNT; i++) {
                 bubbles.push([
                     Math.floor(Math.random() * W), // x
                     Math.floor(Math.random() * H), // y
@@ -56,49 +68,66 @@
                     0.5 + Math.random() * 0.5 // personal speed
                 ]);
             }
-            for (let i = 0; i < 10; i++) {
-                circles.push([
-                    Math.floor(Math.random() * W), // x
-                    Math.random() * H / 8, // y
-                    Math.random() * 150, // r
-                    (1 - Math.random() * 2) * 1.1 // dx
+            for (let i = 0; i < WAVE_CNT; i++) {
+                waves.push([
+                    0, // size
+                    15 + Math.floor(Math.random() * 10), // 1st
+                    40 + Math.floor(Math.random() * 10), // 2nd
+                    65 + Math.floor(Math.random() * 10), // 3rd
+                    (Math.random() > 0.5 ? 1 : -1) * Math.random() / 8 // dy
                 ]);
             }
         }
 
         const draw = () => {
-            const grad = ctx.createLinearGradient(0, 0, 0, H);
-            grad.addColorStop(0, seatop);
-            grad.addColorStop(1, seabottom);
-            ctx.fillStyle = grad;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-/*
-            let R = 2000;
-            ctx.shadowColor = "#ffffff";
-            ctx.shadowOffsetX = 0;
-            ctx.shadowOffsetY = 0;
-            ctx.shadowBlur = 4;
-            circles.forEach(e => {
-                ctx.strokeStyle = "#999999";
-                ctx.beginPath();
-                ctx.arc(e[0], -R + e[1], R, 0, Math.PI);
-                ctx.stroke();
-                e[0] = e[0] + e[3] * 5;
-                if (e[0] < 0 || e[0] > W)
-                    e[3] = - e[3];
-            });
-*/
-            bubbles.forEach(e => {
-                ctx.drawImage(bubbleImages[e[3]], e[0], e[1], DEFAULT_SIZE * e[2], DEFAULT_SIZE * e[2]);
-                e[1] = Math.floor(e[1] - e[2] * 3 * e[4]);
-                if (e[2] > 0.3)
-                    e[0] = e[0] + (1.0 - Math.random() * 2);
-                if (e[1] < -DEFAULT_SIZE) { // make a new bubble out of an old one
-                    e[1] = H + DEFAULT_SIZE;
-                    e[0] = Math.floor(Math.random() * W);
+            n++;
+            if (n > 1) {
+                n = 0;
+                if (localStorage.getItem('show') !== '0') {
+                    const grad = ctx.createLinearGradient(0, 0, 0, H);
+                    grad.addColorStop(0, seatop);
+                    grad.addColorStop(1, seabottom);
+                    ctx.fillStyle = grad;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
                 }
 
-            });
+                waves.forEach((e, i) => {
+                    // return;
+                    svg = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(`
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <filter id="blur">
+    <feGaussianBlur stdDeviation="0.2" />
+    </filter>
+    <g transform="translate(0, 20)">
+<path d="M -50 0 T -20 ${e[0]} T20 0 T40 0 T60 0 T80 0 T120 0 L 120 -100 L -50 -100 Z" stroke="none" fill="#ffffff55"
+filter="
+url(#blur)
+drop-shadow(15px -5px 1px rgba(255, 255, 255, 255))
+drop-shadow(25px -10px 1px rgba(255, 255, 255, 255))
+"/>
+</g>
+</svg>
+            `);
+                    waveImages[i].src = svg;
+                    ctx.drawImage(waveImages[i], 0, 0, W, W);
+                    e[0] = e[0] + e[4];
+                    if (e[0] < -2 || e[0] > 2)
+                        e[4] = -e[4];
+                });
+
+                if (localStorage.getItem('show') !== '0') {
+                    bubbles.forEach(e => {
+                        ctx.drawImage(bubbleImages[e[3]], e[0], e[1], DEFAULT_SIZE * e[2], DEFAULT_SIZE * e[2]);
+                        e[1] = Math.floor(e[1] - e[2] * 3 * e[4]);
+                        if (e[2] > 0.3)
+                            e[0] = e[0] + (1.0 - Math.random() * 2);
+                        if (e[1] < -DEFAULT_SIZE + 100) { // make a new bubble out of an old one
+                            e[1] = H + DEFAULT_SIZE;
+                            e[0] = Math.floor(Math.random() * W);
+                        }
+                    });
+                }
+            }
             window.requestAnimationFrame(draw);
         }
 
@@ -113,7 +142,6 @@
         window.onload = () => {
             W = document.body.clientWidth;
             H = document.body.clientHeight;
-            ITER = 100;
 
             canvas = document.getElementById("canvas");
             canvas.width = document.body.clientWidth;
