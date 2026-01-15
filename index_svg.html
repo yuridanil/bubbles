@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>Page Title</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            height: 100%;
+        }
+
+        svg {
+            width: 100%;
+            height: 100vh;
+            opacity: 1;
+        }
+    </style>
+
+    <script>
+        let start = new Date();
+        let canvas;
+        let ctx;
+        let n = 0;
+        let
+            W,
+            H,
+            BUBBLE_CNT = 100,
+            WAVE_CNT = 1,
+            DEFAULT_SIZE = 32,
+            SPEED = 90,
+            MIN_RADIUS = 1,
+            MAX_RADIUS = 15;
+        let bubbles = [];
+        let waves = [];
+        let svg;
+        let img = new Image();
+
+        const animateBubbles = () => {
+            n++;
+            svg.querySelectorAll("#bubbles > circle").forEach((e, i) => {
+                let cx = parseFloat(e.getAttribute("cx")),
+                    cy = parseFloat(e.getAttribute("cy")),
+                    dx = parseFloat(e.getAttribute("dx")),
+                    r = parseFloat(e.getAttribute("r"));
+                if (Math.random() < 0.01) dx = - dx;
+                cx = cx + ((- 1 + 2 * Math.random()) + dx / 3) * r / 12;
+                cy = cy - 5 * r / 12 * SPEED / 100;
+                if (cy < -r || cx < -r || cx > W + r) {
+                    cy = H;
+                    cx = Math.floor(W * Math.random());
+                }
+                console.log(cx, cy, dx);
+                e.setAttribute("cx", cx);
+                e.setAttribute("cy", cy);
+                e.setAttribute("dx", dx);
+
+            });
+            window.requestAnimationFrame(animateBubbles);
+        }
+
+        const initSvg = () => {
+            for (let i = 0; i < BUBBLE_CNT; i++) {
+                let bubble = document.createElementNS(svg.namespaceURI, 'circle');
+                bubble.setAttribute("cx", (svg.getAttribute("width") * Math.random()).toFixed(0));
+                bubble.setAttribute("cy", (svg.getAttribute("height") * Math.random()).toFixed(0));
+                bubble.setAttribute("dx", Math.random() > 0.5 ? -1 : 1);
+                bubble.setAttribute("r", MIN_RADIUS + (Math.random() * (MAX_RADIUS - MIN_RADIUS)));
+                bubble.setAttribute("fill", "#ffffff");
+                bubble.setAttribute("style", "opacity:0.5; filter:drop-shadow(4px 6px 1px #ff664488) drop-shadow(-2px -4px 1px #44ffffff) blur(2px)");
+                svg.querySelector("#bubbles").appendChild(bubble);
+            }
+        }
+
+        const resizeSvg = () => {
+            W = document.body.clientWidth;
+            H = document.body.clientHeight;
+            svg.setAttribute("width", W);
+            svg.setAttribute("height", H);
+        }
+        window.onresize = () => {
+            resizeSvg();
+        }
+
+        window.onload = () => {
+            svg = document.getElementById("svg");
+            resizeSvg();
+            initSvg();
+            window.requestAnimationFrame(animateBubbles);
+        }
+    </script>
+</head>
+
+<body>
+    <svg id="svg" class="svg">
+        <defs>
+            <linearGradient id="seaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#00aacc" />
+                <stop offset="100%" stop-color="#003040" />
+            </linearGradient>
+        </defs>
+        <rect x="0" y="0" width="100%" height="100%" fill="url(#seaGradient)" />
+        <g id="waves"></g>
+        <g id="bubbles"></g>
+    </svg>
+
+</body>
+
+</html>
