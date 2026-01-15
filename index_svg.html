@@ -15,30 +15,42 @@
             height: 100%;
         }
 
+        .circle {
+            position: absolute;
+            left: 100px;
+            top: 100px;
+            border-radius: 50%;
+            background-color: aqua;
+            pointer-events: none;
+            aspect-ratio: 1 / 1;
+        }
+
         svg {
             width: 100%;
             height: 100vh;
             opacity: 1;
+            cursor: none;
         }
     </style>
 
     <script>
         let start = new Date();
+        let size = 24;
         let canvas;
         let ctx;
         let n = 0;
         let
             W,
             H,
-            BUBBLE_CNT = 100,
+            BUBBLE_CNT = 1,
             WAVE_CNT = 1,
             DEFAULT_SIZE = 32,
             SPEED = 90,
             MIN_RADIUS = 1,
-            MAX_RADIUS = 15;
+            MAX_RADIUS = 13;
         let bubbles = [];
         let waves = [];
-        let svg;
+        let svg, circle;
         let img = new Image();
 
         const animateBubbles = () => {
@@ -55,7 +67,6 @@
                     cy = H;
                     cx = Math.floor(W * Math.random());
                 }
-                console.log(cx, cy, dx);
                 e.setAttribute("cx", cx);
                 e.setAttribute("cy", cy);
                 e.setAttribute("dx", dx);
@@ -64,16 +75,26 @@
             window.requestAnimationFrame(animateBubbles);
         }
 
+
+        const createBubble = (x, y, r) => {
+            let bubble = document.createElementNS(svg.namespaceURI, 'circle');
+            bubble.setAttribute("cx", x);
+            bubble.setAttribute("cy", y);
+            bubble.setAttribute("dx", Math.random() > 0.5 ? -1 : 1);
+            bubble.setAttribute("r", r);
+            bubble.setAttribute("fill", "#ffffff");
+            bubble.setAttribute("style", "opacity:0.5; filter:drop-shadow(4px 6px 1px #ff664488) drop-shadow(-2px -4px 1px #44ffffff) blur(2px)");
+            svg.querySelector("#bubbles").appendChild(bubble);
+        }
+
         const initSvg = () => {
             for (let i = 0; i < BUBBLE_CNT; i++) {
                 let bubble = document.createElementNS(svg.namespaceURI, 'circle');
-                bubble.setAttribute("cx", (svg.getAttribute("width") * Math.random()).toFixed(0));
-                bubble.setAttribute("cy", (svg.getAttribute("height") * Math.random()).toFixed(0));
-                bubble.setAttribute("dx", Math.random() > 0.5 ? -1 : 1);
-                bubble.setAttribute("r", MIN_RADIUS + (Math.random() * (MAX_RADIUS - MIN_RADIUS)));
-                bubble.setAttribute("fill", "#ffffff");
-                bubble.setAttribute("style", "opacity:0.5; filter:drop-shadow(4px 6px 1px #ff664488) drop-shadow(-2px -4px 1px #44ffffff) blur(2px)");
-                svg.querySelector("#bubbles").appendChild(bubble);
+                createBubble(
+                    Math.floor(W * Math.random()),
+                    Math.floor(H * Math.random()),
+                    MIN_RADIUS + (Math.random() * (MAX_RADIUS - MIN_RADIUS))
+                );
             }
         }
 
@@ -83,12 +104,35 @@
             svg.setAttribute("width", W);
             svg.setAttribute("height", H);
         }
+
+        const handleClick = (e) => {
+            createBubble(e.clientX, e.clientY, parseInt(circle.style.width) / 2);
+        }
+
         window.onresize = () => {
             resizeSvg();
+        }
+        window.onmousemove = (e) => {
+            circle.style.left = e.clientX - parseInt(circle.style.width) / 2 + "px";
+            circle.style.top = e.clientY - parseInt(circle.style.width) / 2 + "px";
+        }
+
+        window.onwheel = (e) => {
+            let r = parseInt(circle.style.width);
+            if (e.deltaY < 0 && r < 50)
+                r++;
+            else if (e.deltaY > 0 && r > 2)
+                r--;
+            circle.style.width = r + "px";
+            // circle.style.height = circle.style.width;
         }
 
         window.onload = () => {
             svg = document.getElementById("svg");
+            svg.onclick = handleClick;
+            circle = document.querySelector("#circle");
+            circle.style.width = "10px";
+            // circle.style.height = "10px";
             resizeSvg();
             initSvg();
             window.requestAnimationFrame(animateBubbles);
@@ -97,6 +141,7 @@
 </head>
 
 <body>
+    <div id="circle" class="circle"></div>
     <svg id="svg" class="svg">
         <defs>
             <linearGradient id="seaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
