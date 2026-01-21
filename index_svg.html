@@ -15,16 +15,6 @@
             height: 100%;
         }
 
-        .circle {
-            position: absolute;
-            left: 100px;
-            top: 100px;
-            border-radius: 50%;
-            background-color: aqua;
-            pointer-events: none;
-            aspect-ratio: 1 / 1;
-        }
-
         svg {
             width: 100%;
             height: 100vh;
@@ -35,7 +25,7 @@
 
     <script>
         let start = new Date();
-        let size = 24;
+        let radius = 10;
         let canvas;
         let ctx;
         let n = 0;
@@ -45,9 +35,9 @@
             BUBBLE_CNT = 1,
             WAVE_CNT = 1,
             DEFAULT_SIZE = 32,
-            SPEED = 90,
-            MIN_RADIUS = 1,
-            MAX_RADIUS = 13;
+            SPEED = 50,
+            MIN_RADIUS = 2,
+            MAX_RADIUS = 15;
         let bubbles = [];
         let waves = [];
         let svg, circle;
@@ -83,7 +73,7 @@
             bubble.setAttribute("dx", Math.random() > 0.5 ? -1 : 1);
             bubble.setAttribute("r", r);
             bubble.setAttribute("fill", "#ffffff");
-            bubble.setAttribute("style", "opacity:0.5; filter:drop-shadow(4px 6px 1px #ff664488) drop-shadow(-2px -4px 1px #44ffffff) blur(2px)");
+            bubble.setAttribute("style", "opacity:0.5; filter:drop-shadow("+ .4 * radius +"px "+ .6 * radius +"px 1px #ff664488) drop-shadow(-"+ .2 * radius +"px -"+ .4 * radius +"px 1px #44ffffff) blur(2px)");
             svg.querySelector("#bubbles").appendChild(bubble);
         }
 
@@ -106,33 +96,31 @@
         }
 
         const handleClick = (e) => {
-            createBubble(e.clientX, e.clientY, parseInt(circle.style.width) / 2);
+            createBubble(e.clientX - radius / 2, e.clientY - radius / 2, radius);
         }
 
         window.onresize = () => {
             resizeSvg();
         }
         window.onmousemove = (e) => {
-            circle.style.left = e.clientX - parseInt(circle.style.width) / 2 + "px";
-            circle.style.top = e.clientY - parseInt(circle.style.width) / 2 + "px";
+            circle.setAttribute("cx", e.clientX - radius / 2);
+            circle.setAttribute("cy", e.clientY - radius / 2);
         }
 
         window.onwheel = (e) => {
-            let r = parseInt(circle.style.width);
-            if (e.deltaY < 0 && r < 50)
-                r++;
-            else if (e.deltaY > 0 && r > 2)
-                r--;
-            circle.style.width = r + "px";
-            // circle.style.height = circle.style.width;
+            if (e.deltaY < 0 && radius < MAX_RADIUS)
+                radius++;
+            else if (e.deltaY > 0 && radius > MIN_RADIUS)
+                radius--;
+            circle.setAttribute("r", radius);
+            circle.setAttribute("cx", e.clientX - radius / 2);
+            circle.setAttribute("cy", e.clientY - radius / 2);
         }
 
         window.onload = () => {
             svg = document.getElementById("svg");
             svg.onclick = handleClick;
             circle = document.querySelector("#circle");
-            circle.style.width = "10px";
-            // circle.style.height = "10px";
             resizeSvg();
             initSvg();
             window.requestAnimationFrame(animateBubbles);
@@ -141,7 +129,6 @@
 </head>
 
 <body>
-    <div id="circle" class="circle"></div>
     <svg id="svg" class="svg">
         <defs>
             <linearGradient id="seaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -152,6 +139,7 @@
         <rect x="0" y="0" width="100%" height="100%" fill="url(#seaGradient)" />
         <g id="waves"></g>
         <g id="bubbles"></g>
+        <circle id="circle" cx="10" cy="10" r="10" />
     </svg>
 
 </body>
